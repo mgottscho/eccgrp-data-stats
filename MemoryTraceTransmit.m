@@ -6,8 +6,33 @@ k = 64;
 r = n-k;
 
 % read the file:
-fid = fopen('bzip2_mem_trace_snip.txt');
-C = textscan(fid,'%u64 %u64 %u64 %u64 %u64 %s %u64 %u64 %u64 %u64 %u64 %u64 %u64 %u64','Delimiter',',','EmptyValue',0);
+done = 0;
+i = 1;
+fid = fopen('mem_chan_trace.txt');
+trace_data = NaN(1,11);
+while done == 0
+    % Parse a line
+    [line,charsRead] = fscanf(fid, '%lu,%lu,%lu,%lu,%lu,%lu,%X,%X,%X,%X,%X,%X,%X,%X\n',14);
+    if charsRead == 0
+        done = 1;
+    else   
+        cmd = line(1);
+        addr = line(2);
+        size = line(3);
+        flags = line(4);
+        tick = line(5);
+        has_data = line(6);
+        if has_data == 1
+            data = line(7:14);
+            % Store relevant information into a matrix
+            trace_data(i,1) = tick;
+            trace_data(i,2) = addr;
+            trace_data(i,3) = cmd;
+            trace_data(i,4:11) = data(:)';
+            i = i+1;
+        end
+    end
+end
 fclose(fid);
 
 % the data words are in C{7} to C{14}:
